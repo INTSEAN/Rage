@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: level-devil-game
+    runtime: node
+    plan: free
+    buildCommand: bun install && bun run build
+    startCommand: NODE_ENV=production bun server.ts
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TURSO_CONNECTION_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+    healthCheckPath: /
