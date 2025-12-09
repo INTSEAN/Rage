@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Player, GameState, MultiplayerPlayer, RoomData } from '@/lib/gameTypes';
+import { Player, GameState, MultiplayerPlayer, RoomData, Platform } from '@/lib/gameTypes';
 import { LEVELS } from '@/lib/levels';
 import { Button } from '@/components/ui/button';
 import { Heart, RotateCcw, Play, Pause, RotateCw, SkipForward, Users, Copy, Check } from 'lucide-react';
@@ -49,7 +49,7 @@ const sounds = {
 
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
   const keysPressed = useRef<Set<string>>(new Set());
   const lastJumpTime = useRef<number>(0);
   const bossAudioInterval = useRef<NodeJS.Timeout | null>(null);
@@ -224,7 +224,7 @@ export default function Game() {
     wsClient.connect()
       .then(() => {
         console.log('[Game] Connected, joining room...');
-        return wsClient.joinRoom(roomData.code, roomData.playerId, roomData.playerName);
+        return wsClient.joinRoom(roomData.code, roomData.playerId.toString(), roomData.playerName);
       })
       .catch((err) => {
         console.error('[Game] Connection failed:', err);
