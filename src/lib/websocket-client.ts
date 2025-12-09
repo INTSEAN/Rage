@@ -29,13 +29,15 @@ export class GameWebSocketClient {
       maxDelay: config.maxDelay ?? 30000,
       jitter: config.jitter ?? true,
     };
-    
+
     // Determine WebSocket URL
-    if (typeof window !== 'undefined') {
+    if (process.env.NEXT_PUBLIC_WS_URL) {
+      this.url = process.env.NEXT_PUBLIC_WS_URL;
+    } else if (typeof window !== 'undefined') {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       this.url = `${protocol}//${window.location.host}/ws`;
     } else {
-      this.url = 'ws://localhost:3000/ws';
+      this.url = 'ws://localhost:8080';
     }
   }
 
@@ -70,7 +72,7 @@ export class GameWebSocketClient {
         this.ws.onclose = () => {
           console.log('[WS Client] Disconnected');
           this.stopHeartbeat();
-          
+
           // Only attempt reconnect if not intentionally closed
           if (!this.isIntentionalClose) {
             this.attemptReconnect();
@@ -118,7 +120,7 @@ export class GameWebSocketClient {
       this.config.initialDelay * Math.pow(2, attempt),
       this.config.maxDelay
     );
-    
+
     if (this.config.jitter) {
       return delay + Math.random() * 1000;
     }
@@ -144,7 +146,7 @@ export class GameWebSocketClient {
     return new Promise((resolve, reject) => {
       this.roomCode = roomCode;
       this.playerId = playerId;
-      
+
       const unsub = this.on('room-joined', (msg) => {
         unsub();
         resolve();
@@ -166,7 +168,7 @@ export class GameWebSocketClient {
 
   movePlayer(position: { x: number; y: number }, direction: 'left' | 'right') {
     if (!this.roomCode || !this.playerId) return;
-    
+
     this.send({
       type: 'move',
       roomCode: this.roomCode,
@@ -178,7 +180,7 @@ export class GameWebSocketClient {
 
   levelComplete(level: number) {
     if (!this.roomCode || !this.playerId) return;
-    
+
     this.send({
       type: 'level-complete',
       roomCode: this.roomCode,
@@ -217,7 +219,7 @@ export class GameWebSocketClient {
 
   disconnect() {
     this.isIntentionalClose = true;
-    
+
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
     }

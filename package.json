@@ -1,11 +1,16 @@
 {
-    "name": "app",
+    "name": "rage",
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "bun server.ts",
+        "dev": "next dev",
+        "dev:frontend": "next dev",
+        "dev:backend": "cd websocket-server && npm run dev",
         "build": "next build",
-        "start": "NODE_ENV=production bun server.ts",
+        "start": "next start",
+        "ws:dev": "cd websocket-server && npm run dev",
+        "ws:build": "cd websocket-server && npm run build",
+        "ws:start": "cd websocket-server && npm start",
         "lint": "next lint"
     },
     "dependencies": {
@@ -51,7 +56,7 @@
         "atmn": "^0.0.28",
         "autumn-js": "^0.1.43",
         "bcrypt": "^6.0.0",
-        "better-auth": "1.3.10",
+        "better-auth": "^1.3.17",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
@@ -100,6 +105,7 @@
         "zod": "^4.1.12"
     },
     "devDependencies": {
+        "concurrently": "^9.1.0",
         "@eslint/eslintrc": "^3.3.1",
         "@tailwindcss/postcss": "^4",
         "@types/node": "^20",

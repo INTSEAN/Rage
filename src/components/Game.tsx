@@ -12,7 +12,7 @@ const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const DEFAULT_GRAVITY = 0.6;
 const FRICTION = 0.8;
-const PROGRESS_KEY = 'level_devil_progress';
+const PROGRESS_KEY = 'rage_game_progress';
 
 // Sound effects using Web Audio API
 const playSound = (frequency: number, duration: number, type: OscillatorType = 'sine') => {
@@ -20,16 +20,16 @@ const playSound = (frequency: number, duration: number, type: OscillatorType = '
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
-    
+
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
-    
+
     oscillator.type = type;
     oscillator.frequency.value = frequency;
-    
+
     gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-    
+
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + duration);
   } catch (e) {
@@ -54,7 +54,7 @@ export default function Game() {
   const lastJumpTime = useRef<number>(0);
   const bossAudioInterval = useRef<NodeJS.Timeout | null>(null);
   const wsClientRef = useRef<GameWebSocketClient | null>(null);
-  
+
   const [gameState, setGameState] = useState<GameState>({
     currentLevel: 0,
     lives: 3,
@@ -117,7 +117,7 @@ export default function Game() {
         }, 3000);
       }
     }
-    
+
     return () => {
       if (bossAudioInterval.current) {
         clearInterval(bossAudioInterval.current);
@@ -145,33 +145,33 @@ export default function Game() {
       console.log('[Game] My playerId:', roomData.playerId);
       console.log('[Game] Players in room:', msg.players);
       setWsConnected(true);
-      
+
       // Update other players list (exclude myself)
       const others = msg.players.filter((p: any) => p.id !== roomData.playerId);
       console.log('[Game] Other players after filtering:', others);
-      
+
       setOtherPlayers(others.map((p: any) => ({
         id: p.id,
         playerName: p.name,
-        playerColor: '#' + Math.floor(Math.random()*16777215).toString(16),
+        playerColor: '#' + Math.floor(Math.random() * 16777215).toString(16),
         positionX: p.position.x,
         positionY: p.position.y,
         direction: p.direction
       })));
-      
+
       console.log('[Game] Set wsConnected to true, otherPlayers count:', others.length);
     });
 
     const unsubPlayerJoined = wsClient.on('player-joined', (msg) => {
       console.log('[Game] player-joined received:', msg);
       console.log('[Game] Adding player:', msg.playerId, msg.playerName);
-      
+
       setOtherPlayers(prev => {
         console.log('[Game] Previous other players:', prev);
         const newPlayers = [...prev, {
           id: msg.playerId,
           playerName: msg.playerName,
-          playerColor: '#' + Math.floor(Math.random()*16777215).toString(16),
+          playerColor: '#' + Math.floor(Math.random() * 16777215).toString(16),
           positionX: msg.position.x,
           positionY: msg.position.y,
           direction: msg.direction
@@ -188,8 +188,8 @@ export default function Game() {
 
     const unsubPlayerMoved = wsClient.on('player-moved', (msg) => {
       // Update player position in real-time
-      setOtherPlayers(prev => prev.map(p => 
-        p.id === msg.playerId 
+      setOtherPlayers(prev => prev.map(p =>
+        p.id === msg.playerId
           ? { ...p, positionX: msg.position.x, positionY: msg.position.y, direction: msg.direction }
           : p
       ));
@@ -198,7 +198,7 @@ export default function Game() {
     const unsubLevelAdvance = wsClient.on('level-advance', (msg) => {
       console.log('[Game] Level advance:', msg);
       const nextLevel = msg.level + 1;
-      
+
       // Advance to next level
       setGameState(prev => ({
         ...prev,
@@ -206,11 +206,11 @@ export default function Game() {
         levelComplete: false,
         message: '🎉 Team advanced to next level!'
       }));
-      
+
       setTimeout(() => {
         setGameState(prev => ({ ...prev, message: '' }));
       }, 2000);
-      
+
       initLevel(nextLevel);
       sounds.complete();
     });
@@ -258,25 +258,25 @@ export default function Game() {
   // Create multiplayer room
   const createRoom = async () => {
     if (!playerName.trim()) return;
-    
+
     try {
       const response = await fetch('/api/rooms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hostName: playerName.trim() })
       });
-      
+
       const data = await response.json();
-      
+
       // Join the room as host
       const joinResponse = await fetch('/api/rooms/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: data.code, playerName: playerName.trim() })
       });
-      
+
       const joinData = await joinResponse.json();
-      
+
       setRoomData({
         code: data.code,
         roomId: data.roomId,
@@ -285,7 +285,7 @@ export default function Game() {
         playerColor: joinData.playerColor,
         isHost: true
       });
-      
+
       setMultiplayerMode(true);
       setShowMultiplayerSetup(false);
     } catch (error) {
@@ -296,26 +296,26 @@ export default function Game() {
   // Join multiplayer room
   const joinRoom = async () => {
     if (!playerName.trim() || !joinCode.trim()) return;
-    
+
     try {
       const response = await fetch('/api/rooms/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: joinCode.trim().toUpperCase(), playerName: playerName.trim() })
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         setGameState(prev => ({ ...prev, message: error.error || 'Failed to join room' }));
         return;
       }
-      
+
       const data = await response.json();
-      
+
       // Fetch room to get current level
       const roomResponse = await fetch(`/api/rooms/${joinCode.trim().toUpperCase()}`);
       const roomData = await roomResponse.json();
-      
+
       setRoomData({
         code: joinCode.trim().toUpperCase(),
         roomId: data.roomId,
@@ -324,7 +324,7 @@ export default function Game() {
         playerColor: data.playerColor,
         isHost: false
       });
-      
+
       // Set current level to match room level
       if (roomData.room) {
         setGameState(prev => ({
@@ -332,7 +332,7 @@ export default function Game() {
           currentLevel: roomData.room.currentLevel
         }));
       }
-      
+
       setMultiplayerMode(true);
       setShowMultiplayerSetup(false);
     } catch (error) {
@@ -359,12 +359,12 @@ export default function Game() {
       } catch (error) {
         console.error('Failed to leave room:', error);
       }
-      
+
       // Disconnect WebSocket
       if (wsClientRef.current) {
         wsClientRef.current.disconnect();
       }
-      
+
       setRoomData(null);
       setMultiplayerMode(false);
       setOtherPlayers([]);
@@ -412,10 +412,10 @@ export default function Game() {
       touchCount: 0,
       rotation: p.rotation ?? 0
     }));
-    
+
     platformsRef.current = newPlatforms;
     currentGravityRef.current = level.gravity ?? DEFAULT_GRAVITY;
-    
+
     setPlayer({
       ...player,
       x: level.startPosition.x,
@@ -462,12 +462,12 @@ export default function Game() {
   const nextLevel = async () => {
     const nextLevelIndex = gameState.currentLevel + 1;
     saveProgress(nextLevelIndex);
-    
+
     // In multiplayer, broadcast level completion via WebSocket
     if (multiplayerMode && wsClientRef.current) {
       wsClientRef.current.levelComplete(gameState.currentLevel);
     }
-    
+
     initLevel(nextLevelIndex);
     sounds.complete();
   };
@@ -519,14 +519,14 @@ export default function Game() {
   const getGravityForPosition = (x: number, y: number) => {
     const level = LEVELS[gameState.currentLevel];
     if (!level.gravityZones) return level.gravity ?? DEFAULT_GRAVITY;
-    
+
     for (const zone of level.gravityZones) {
       if (x >= zone.x && x <= zone.x + zone.width &&
-          y >= zone.y && y <= zone.y + zone.height) {
+        y >= zone.y && y <= zone.y + zone.height) {
         return zone.gravity;
       }
     }
-    
+
     return level.gravity ?? DEFAULT_GRAVITY;
   };
 
@@ -537,7 +537,7 @@ export default function Game() {
       if (platform.type === 'razor' && platform.rotationSpeed) {
         platform.rotation = (platform.rotation || 0) + platform.rotationSpeed;
       }
-      
+
       // Update movement
       if (platform.moveDirection) {
         if (platform.moveDirection === 'horizontal') {
@@ -586,7 +586,7 @@ export default function Game() {
         level.gravityZones.forEach(zone => {
           ctx.fillStyle = zone.color || 'rgba(147, 51, 234, 0.2)';
           ctx.fillRect(zone.x, zone.y, zone.width, zone.height);
-          
+
           // Draw zone indicator
           ctx.strokeStyle = zone.gravity < 0 ? '#a855f7' : '#ef4444';
           ctx.lineWidth = 2;
@@ -704,7 +704,7 @@ export default function Game() {
           if (platform.type === 'disappearing') {
             if (!platform.touchCount) platform.touchCount = 0;
             platform.touchCount++;
-            
+
             if (platform.touchCount === 1) {
               setTimeout(() => {
                 platform.isVisible = false;
@@ -824,19 +824,19 @@ export default function Game() {
         if (!platform.isVisible) return;
 
         ctx.fillStyle = platform.color || '#4a5568';
-        
+
         if (platform.type === 'razor') {
           // Draw spinning razor blades
           ctx.save();
           ctx.translate(platform.x + platform.width / 2, platform.y + platform.height / 2);
           ctx.rotate((platform.rotation || 0) * Math.PI / 180);
-          
+
           // Blade circle
           ctx.fillStyle = '#dc2626';
           ctx.beginPath();
           ctx.arc(0, 0, platform.width / 2, 0, Math.PI * 2);
           ctx.fill();
-          
+
           // Razor teeth
           ctx.fillStyle = '#7f1d1d';
           for (let i = 0; i < 8; i++) {
@@ -848,19 +848,19 @@ export default function Game() {
             ctx.closePath();
             ctx.fill();
           }
-          
+
           // Center bolt
           ctx.fillStyle = '#1f2937';
           ctx.beginPath();
           ctx.arc(0, 0, platform.width / 6, 0, Math.PI * 2);
           ctx.fill();
-          
+
           ctx.restore();
         } else if (platform.type === 'crushing') {
           // Draw crushing platforms with menacing appearance
           ctx.fillStyle = platform.color || '#7f1d1d';
           ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-          
+
           // Spikes on bottom
           ctx.fillStyle = '#450a0a';
           for (let i = 0; i < platform.width; i += 15) {
@@ -876,7 +876,7 @@ export default function Game() {
           const shake = Math.sin(timestamp * (platform.shakeFrequency || 0.1)) * (platform.shakeIntensity || 5);
           ctx.fillStyle = platform.color || '#78350f';
           ctx.fillRect(platform.x, platform.y + shake, platform.width, platform.height);
-          
+
           // Draw cracks
           ctx.strokeStyle = '#451a03';
           ctx.lineWidth = 2;
@@ -905,13 +905,13 @@ export default function Game() {
           if (platform.touchCount && platform.touchCount > 0) {
             opacity = Math.sin(Date.now() / 100) * 0.3 + 0.7;
           }
-          
+
           // Shake effect if specified
           let shakeY = 0;
           if (platform.shakeIntensity && platform.touchCount && platform.touchCount > 0) {
             shakeY = Math.sin(Date.now() * 0.02) * platform.shakeIntensity;
           }
-          
+
           ctx.globalAlpha = opacity;
           ctx.fillRect(platform.x, platform.y + shakeY, platform.width, platform.height);
           ctx.globalAlpha = 1;
@@ -943,7 +943,7 @@ export default function Game() {
       otherPlayers.forEach(otherPlayer => {
         ctx.fillStyle = otherPlayer.playerColor;
         ctx.fillRect(otherPlayer.positionX, otherPlayer.positionY, 30, 30);
-        
+
         // Draw eyes
         ctx.fillStyle = '#000';
         if (otherPlayer.direction === 'right') {
@@ -951,7 +951,7 @@ export default function Game() {
         } else {
           ctx.fillRect(otherPlayer.positionX + 6, otherPlayer.positionY + 8, 6, 6);
         }
-        
+
         // Draw name label
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 12px Arial';
@@ -962,7 +962,7 @@ export default function Game() {
       // Draw player
       ctx.fillStyle = roomData?.playerColor || '#f59e0b';
       ctx.fillRect(newPlayer.x, newPlayer.y, newPlayer.width, newPlayer.height);
-      
+
       // Draw player eyes
       ctx.fillStyle = '#000';
       if (newPlayer.direction === 'right') {
@@ -970,7 +970,7 @@ export default function Game() {
       } else {
         ctx.fillRect(newPlayer.x + 6, newPlayer.y + 8, 6, 6);
       }
-      
+
       // Draw player name (multiplayer)
       if (multiplayerMode && roomData) {
         ctx.fillStyle = '#fff';
@@ -1096,24 +1096,23 @@ export default function Game() {
           ref={canvasRef}
           width={CANVAS_WIDTH}
           height={CANVAS_HEIGHT}
-          className={`border-4 rounded-lg shadow-2xl ${
-            currentLevel?.isBossLevel ? 'border-red-600 animate-pulse' : 'border-purple-500'
-          }`}
+          className={`border-4 rounded-lg shadow-2xl ${currentLevel?.isBossLevel ? 'border-red-600 animate-pulse' : 'border-purple-500'
+            }`}
         />
-        
+
         {/* Boss level indicator */}
         {gameState.isPlaying && currentLevel?.isBossLevel && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-lg font-bold text-xl animate-bounce shadow-lg">
             ⚠️ BOSS LEVEL ⚠️
           </div>
         )}
-        
+
         {/* Multiplayer Setup Overlay */}
         {showMultiplayerSetup && !multiplayerMode && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/80 rounded-lg">
             <div className="bg-slate-800 p-8 rounded-lg max-w-md w-full">
               <h2 className="text-2xl font-bold text-white mb-6 text-center">Multiplayer Setup</h2>
-              
+
               <div className="mb-6">
                 <label className="text-white text-sm mb-2 block">Your Name</label>
                 <Input
@@ -1124,23 +1123,23 @@ export default function Game() {
                   maxLength={20}
                 />
               </div>
-              
+
               <div className="space-y-3 mb-6">
-                <Button 
-                  onClick={createRoom} 
-                  className="w-full" 
+                <Button
+                  onClick={createRoom}
+                  className="w-full"
                   size="lg"
                   disabled={!playerName.trim()}
                 >
                   Create Room
                 </Button>
-                
+
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-px bg-gray-600"></div>
                   <span className="text-gray-400 text-sm">OR</span>
                   <div className="flex-1 h-px bg-gray-600"></div>
                 </div>
-                
+
                 <Input
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
@@ -1148,21 +1147,21 @@ export default function Game() {
                   className="mb-2"
                   maxLength={6}
                 />
-                
-                <Button 
-                  onClick={joinRoom} 
-                  variant="secondary" 
-                  className="w-full" 
+
+                <Button
+                  onClick={joinRoom}
+                  variant="secondary"
+                  className="w-full"
                   size="lg"
                   disabled={!playerName.trim() || !joinCode.trim()}
                 >
                   Join Room
                 </Button>
               </div>
-              
-              <Button 
-                onClick={() => setShowMultiplayerSetup(false)} 
-                variant="outline" 
+
+              <Button
+                onClick={() => setShowMultiplayerSetup(false)}
+                variant="outline"
                 className="w-full"
               >
                 Cancel
@@ -1170,7 +1169,7 @@ export default function Game() {
             </div>
           </div>
         )}
-        
+
         {/* Overlays */}
         {!gameState.isPlaying && !gameState.gameOver && !showMultiplayerSetup && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/70 rounded-lg">
@@ -1198,9 +1197,8 @@ export default function Game() {
         {gameState.levelComplete && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/70 rounded-lg">
             <div className="text-center">
-              <h2 className={`text-3xl font-bold mb-4 ${
-                currentLevel?.isBossLevel ? 'text-yellow-400' : 'text-green-400'
-              }`}>{gameState.message}</h2>
+              <h2 className={`text-3xl font-bold mb-4 ${currentLevel?.isBossLevel ? 'text-yellow-400' : 'text-green-400'
+                }`}>{gameState.message}</h2>
               {gameState.currentLevel < LEVELS.length - 1 ? (
                 <Button onClick={nextLevel} size="lg" className="bg-green-600 hover:bg-green-700">
                   Next Level
@@ -1237,9 +1235,8 @@ export default function Game() {
 
       {/* Current Level Info */}
       {gameState.isPlaying && currentLevel && (
-        <div className={`mt-4 text-center backdrop-blur-sm rounded-lg p-4 max-w-[800px] ${
-          currentLevel.isBossLevel ? 'bg-red-900/40 border-2 border-red-500' : 'bg-black/30'
-        }`}>
+        <div className={`mt-4 text-center backdrop-blur-sm rounded-lg p-4 max-w-[800px] ${currentLevel.isBossLevel ? 'bg-red-900/40 border-2 border-red-500' : 'bg-black/30'
+          }`}>
           <h3 className="text-xl font-bold text-white mb-2">{currentLevel.name}</h3>
           <p className={`italic ${currentLevel.isBossLevel ? 'text-red-300' : 'text-yellow-300'}`}>
             {currentLevel.trick}
