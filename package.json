@@ -3,10 +3,10 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "next dev",
+        "dev": "next dev --webpack",
         "dev:frontend": "next dev",
         "dev:backend": "cd websocket-server && npm run dev",
-        "build": "next build",
+        "build": "next build --webpack",
         "start": "next start",
         "ws:dev": "cd websocket-server && npm run dev",
         "ws:build": "cd websocket-server && npm run build",
@@ -75,7 +75,7 @@
         "mini-svg-data-uri": "^1.4.4",
         "motion": "^12.23.24",
         "motion-dom": "^12.23.23",
-        "next": "15.3.5",
+        "next": "^16.0.8",
         "next-themes": "^0.4.6",
         "qss": "^3.0.0",
         "react": "^19.0.0",
@@ -105,7 +105,6 @@
         "zod": "^4.1.12"
     },
     "devDependencies": {
-        "concurrently": "^9.1.0",
         "@eslint/eslintrc": "^3.3.1",
         "@tailwindcss/postcss": "^4",
         "@types/node": "^20",
@@ -113,6 +112,7 @@
         "@types/react-dom": "^19",
         "@types/react-syntax-highlighter": "^15.5.13",
         "@types/three": "^0.178.0",
+        "concurrently": "^9.1.0",
         "eslint": "^9.38.0",
         "eslint-config-next": "^16.0.1",
         "tailwindcss": "^4",

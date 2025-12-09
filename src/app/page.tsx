@@ -11,7 +11,7 @@ export default function Home() {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Skull className="w-12 h-12 text-red-500 animate-pulse" />
             <h1 className="text-6xl font-bold text-white">
-              Level <span className="text-red-500">Devil</span>
+              <span className="text-red-500">Rage</span>
             </h1>
             <Skull className="w-12 h-12 text-red-500 animate-pulse" />
           </div>
@@ -28,7 +28,7 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-white mb-6 text-center">
             Can you reach the exit?
           </h2>
-          
+
           {/* Features */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <div className="flex items-start gap-3 bg-purple-900/30 p-4 rounded-lg">
@@ -40,7 +40,7 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-start gap-3 bg-purple-900/30 p-4 rounded-lg">
               <TrendingUp className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
               <div>
@@ -50,7 +50,7 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-start gap-3 bg-purple-900/30 p-4 rounded-lg">
               <AlertTriangle className="w-6 h-6 text-red-400 flex-shrink-0 mt-1" />
               <div>
@@ -60,7 +60,7 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-start gap-3 bg-purple-900/30 p-4 rounded-lg">
               <Gamepad2 className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
               <div>
@@ -104,8 +104,8 @@ export default function Home() {
 
           {/* Play Button */}
           <Link href="/game" className="block">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="w-full text-xl py-6 bg-gradient-to-r from-purple-600 to-red-600 hover:from-purple-700 hover:to-red-700 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
             >
               <Gamepad2 className="w-6 h-6 mr-2" />
